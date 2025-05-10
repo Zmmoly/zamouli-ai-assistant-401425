@@ -1,0 +1,37 @@
+workflows:
+  android-workflow:
+    name: زمولي Android
+    instance_type: mac_mini
+    environment:
+      java: 11
+      # يمكن إضافة التوقيع لاحقاً عند توفره
+      # android_signing:
+      #   - keystore_reference
+    cache:
+      cache_paths:
+        - ~/.gradle/caches
+        - ~/.gradle/wrapper
+    scripts:
+      - name: تثبيت التبعيات
+        script: ./gradlew dependencies
+      - name: إعداد اختصارات Gradle
+        script: |
+          mkdir -p ~/.gradle
+          echo "org.gradle.daemon=true" >> ~/.gradle/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx4096m -XX:+HeapDumpOnOutOfMemoryError" >> ~/.gradle/gradle.properties
+          echo "org.gradle.parallel=true" >> ~/.gradle/gradle.properties
+          echo "org.gradle.caching=true" >> ~/.gradle/gradle.properties
+      - name: بناء APK
+        script: ./gradlew assembleRelease
+      - name: اختبار وحدات
+        script: ./gradlew testReleaseUnitTest
+    artifacts:
+      - app/build/outputs/apk/release/app-release.apk
+      - app/build/outputs/mapping/release/mapping.txt
+    publishing:
+      email:
+        recipients:
+          - Zmmoly@gmail.com  # تم تحديث البريد الإلكتروني
+        notify:
+          success: true
+          failure: true
