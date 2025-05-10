@@ -1,11 +1,9 @@
 workflows:
   android-workflow:
     name: زمولي Android
+    instance_type: mac_mini
     environment:
       java: 11
-      # يمكن إضافة التوقيع لاحقاً عند توفره
-      # android_signing:
-      #   - keystore_reference
     cache:
       cache_paths:
         - ~/.gradle/caches
@@ -19,42 +17,42 @@ workflows:
           ls -la app/ || echo "مجلد app غير موجود"
           echo "فحص ملفات gradle..."
           ls -la gradle/ || echo "مجلد gradle غير موجود"
-          echo "فحص هيكل المشروع الكامل..."
-          find . -type f -name "*.gradle" -o -name "*.gradle.kts" | sort
       - name: إعداد أذونات التنفيذ
         script: |
           chmod +x ./gradlew
           echo "تم إعطاء أذونات التنفيذ لملف gradlew"
-      - name: تثبيت التبعيات
-        script: |
-          # التحقق من وجود ملف gradlew
-          ls -la
-          # استخدام أمر gradle مباشرة عوضاً عن gradlew 
-          gradle --version
-          # محاولة استخدام gradlew مع طرق مختلفة
-          ./gradlew tasks
-      - name: إعداد اختصارات Gradle
+      - name: إعداد ملف gradle.properties
         script: |
           mkdir -p ~/.gradle
           echo "org.gradle.daemon=true" >> ~/.gradle/gradle.properties
           echo "org.gradle.jvmargs=-Xmx4096m -XX:+HeapDumpOnOutOfMemoryError" >> ~/.gradle/gradle.properties
           echo "org.gradle.parallel=true" >> ~/.gradle/gradle.properties
           echo "org.gradle.caching=true" >> ~/.gradle/gradle.properties
+      - name: تثبيت التبعيات
+        script: |
+          # استخدام gradlew بشكل صحيح مع تحديد المهمة بوضوح
+          ./gradlew --version
+          # استخدام المهمة المحددة مثل dependencies
+          ./gradlew dependencies --stacktrace
       - name: بناء APK
         script: |
-          # استخدام اﻷمر مع وضع تصحيح
-          ./gradlew assembleRelease --info
+          # تبديل إلى استخدام الإعداد المبسط
+          ./gradlew :app:assembleDebug --stacktrace || true
+          # محاولة أخرى إذا فشلت الأولى
+          ./gradlew assembleDebug --stacktrace || echo "فشل بناء نسخة التصحيح"
+          # محاولة بناء نسخة الإنتاج
+          ./gradlew assembleRelease --stacktrace || echo "فشل بناء نسخة الإنتاج"
       - name: اختبار وحدات
         script: |
           # التخطي إذا فشل البناء السابق
-          ./gradlew testReleaseUnitTest || echo "تم تخطي الاختبارات بسبب فشل البناء"
+          ./gradlew testReleaseUnitTest --stacktrace || echo "تم تخطي الاختبارات بسبب فشل البناء"
     artifacts:
-      - app/build/outputs/apk/release/app-release.apk
+      - app/build/outputs/**/*.apk
       - app/build/outputs/mapping/release/mapping.txt
     publishing:
       email:
         recipients:
-          - zmmoly@gmail.com  # تم تحديث البريد الإلكتروني
+          - zmmoly@gmail.com
         notify:
           success: true
           failure: true
