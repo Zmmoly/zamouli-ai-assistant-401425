@@ -11,6 +11,8 @@ workflows:
         - ~/.gradle/caches
         - ~/.gradle/wrapper
     scripts:
+      - name: إعداد أذونات التنفيذ
+        script: chmod +x ./gradlew
       - name: تثبيت التبعيات
         script: ./gradlew dependencies
       - name: إعداد اختصارات Gradle
@@ -30,7 +32,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - zamouli.app@example.com  # قم بتغيير هذا إلى بريدك الإلكتروني الحقيقي
+          - zmmoly@gmail.com  # تم تحديث البريد الإلكتروني
         notify:
           success: true
           failure: true
