@@ -1,7 +1,6 @@
 workflows:
   android-workflow:
     name: زمولي Android
-    instance_type: mac_mini
     environment:
       java: 11
       # يمكن إضافة التوقيع لاحقاً عند توفره
@@ -31,7 +30,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - Zmmoly@gmail.com  # تم تحديث البريد الإلكتروني
+          - zamouli.app@example.com  # قم بتغيير هذا إلى بريدك الإلكتروني الحقيقي
         notify:
           success: true
           failure: true
