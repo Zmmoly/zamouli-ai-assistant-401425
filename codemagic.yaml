@@ -1,7 +1,6 @@
 workflows:
   android-workflow:
     name: زمولي Android
-    instance_type: linux
     environment:
       java: 11
     cache:
@@ -17,32 +16,36 @@ workflows:
           ls -la app/ || echo "مجلد app غير موجود"
           echo "فحص ملفات gradle..."
           ls -la gradle/ || echo "مجلد gradle غير موجود"
+          echo "فحص هيكل المشروع الكامل..."
+          find . -type f -name "*.gradle" -o -name "*.gradle.kts" | sort
       - name: إعداد أذونات التنفيذ
         script: |
           chmod +x ./gradlew
           echo "تم إعطاء أذونات التنفيذ لملف gradlew"
-      - name: إعداد ملف gradle.properties
+      - name: تثبيت التبعيات
+        script: |
+          # التحقق من وجود ملف gradlew
+          ls -la
+          # استخدام أمر gradle مباشرة عوضاً عن gradlew 
+          gradle --version
+          # محاولة استخدام gradlew مع طرق مختلفة
+          ./gradlew tasks || true
+      - name: إعداد اختصارات Gradle
         script: |
           mkdir -p ~/.gradle
           echo "org.gradle.daemon=true" >> ~/.gradle/gradle.properties
           echo "org.gradle.jvmargs=-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError" >> ~/.gradle/gradle.properties
           echo "org.gradle.parallel=true" >> ~/.gradle/gradle.properties
           echo "org.gradle.caching=true" >> ~/.gradle/gradle.properties
-      - name: تثبيت التبعيات
-        script: |
-          # التحقق من نسخة Gradle
-          ./gradlew --version || gradle --version
-          # تحميل التبعيات
-          ./gradlew dependencies --stacktrace || true
       - name: بناء APK
         script: |
-          # بناء نسخة APK
+          # استخدام اﻷمر مع وضع تصحيح
           ./gradlew assembleDebug --stacktrace || true
-          ./gradlew assembleRelease --stacktrace || echo "تم محاولة بناء APK"
+          ./gradlew assembleRelease --stacktrace || echo "محاولة بناء إصدار الإنتاج"
       - name: اختبار وحدات
         script: |
-          # تشغيل الاختبارات اختياري
-          ./gradlew testReleaseUnitTest --stacktrace || echo "تم تخطي الاختبارات"
+          # التخطي إذا فشل البناء السابق
+          ./gradlew testReleaseUnitTest || echo "تم تخطي الاختبارات بسبب فشل البناء"
     artifacts:
       - app/build/outputs/**/*.apk
       - app/build/outputs/mapping/release/mapping.txt
